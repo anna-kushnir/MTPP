@@ -1,10 +1,14 @@
 package annak.lab1;
 
+import static annak.lab1.Utils.measureTime;
+import static annak.lab1.Utils.printSpeedup;
+
 public class Main {
 
     public static final long PI_ITERATIONS = 50_000_000L;
     private static final long FACTOR_NUMBER = 5_223_372_036_854_775_783L;
     private static final int PRIME_MAX = 1_000_000;
+    private static final int MATRIX_SIZE = 10_000;
 
     public static void main(String[] args) {
         int cores = Runtime.getRuntime().availableProcessors();
@@ -19,5 +23,16 @@ public class Main {
         CpuTests.runTest("1.3. Prime Numbers", threadsConfig,
                 () -> CpuTests.PrimeNumbers.runSequential(PRIME_MAX),
                 (t) -> CpuTests.PrimeNumbers.runParallel(PRIME_MAX, t));
+
+        System.out.println("\n####### TEST 2: MEMORY-BOUND #######");
+        double[][] matrix = new double[MATRIX_SIZE][MATRIX_SIZE];
+        long timeSeqMem = measureTime("--- Sequential",
+                () -> MemoryTests.TransposeMatrix.runSequential(matrix));
+        for (int threads : threadsConfig) {
+            long timeParMem = measureTime("--- Parallel (" + threads + ")",
+                    () -> MemoryTests.TransposeMatrix.runParallel(matrix, threads));
+            printSpeedup(timeSeqMem, timeParMem);
+        }
+
     }
 }
