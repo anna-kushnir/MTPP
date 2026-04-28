@@ -1,5 +1,9 @@
 package annak.lab1;
 
+import annak.lab1.tests.CpuTests;
+import annak.lab1.tests.IoTests;
+import annak.lab1.tests.MemoryTests;
+
 import static annak.lab1.Utils.measureTime;
 import static annak.lab1.Utils.printSpeedup;
 
@@ -8,7 +12,11 @@ public class Main {
     public static final long PI_ITERATIONS = 50_000_000L;
     private static final long FACTOR_NUMBER = 5_223_372_036_854_775_783L;
     private static final int PRIME_MAX = 1_000_000;
+
     private static final int MATRIX_SIZE = 10_000;
+
+    private static final int FILES_COUNT = 1000;
+    private static final String DIR_NAME = "test_files";
 
     public static void main(String[] args) {
         int cores = Runtime.getRuntime().availableProcessors();
@@ -34,5 +42,14 @@ public class Main {
             printSpeedup(timeSeqMem, timeParMem);
         }
 
+        System.out.println("\n####### TEST 3: I/O-BOUND #######");
+        if (IoTests.WordsCounter.prepareTestFiles(DIR_NAME, FILES_COUNT)) System.out.println("Test files were generated");
+        long timeSeqIo = measureTime("--- Sequential",
+                () -> IoTests.WordsCounter.runSequential(DIR_NAME));
+        for (int threads : threadsConfig) {
+            long timeParIo = measureTime("--- Parallel (" + threads + ")",
+                    () -> IoTests.WordsCounter.runParallel(DIR_NAME, threads));
+            printSpeedup(timeSeqIo, timeParIo);
+        }
     }
 }

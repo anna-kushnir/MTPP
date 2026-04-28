@@ -1,4 +1,4 @@
-package annak.lab1;
+package annak.lab1.tests;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +37,7 @@ public class CpuTests {
     public interface SequentialTask { void run() throws Exception; }
     public interface ParallelTask { void run(int t) throws Exception; }
 
-    static class PiMonteCarlo {
+    public static class PiMonteCarlo {
 
         public static void runSequential() {
             long inside = 0;
@@ -67,7 +67,7 @@ public class CpuTests {
         }
     }
 
-    static class Factorization {
+    public static class Factorization {
 
         public static void runSequential(long n) {
             long limit = (long) Math.sqrt(n);
@@ -101,7 +101,7 @@ public class CpuTests {
         }
     }
 
-    static class PrimeNumbers {
+    public static class PrimeNumbers {
 
         public static void runSequential(int max) {
             int count = 0;

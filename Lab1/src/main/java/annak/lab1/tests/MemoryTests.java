@@ -1,10 +1,10 @@
-package annak.lab1;
+package annak.lab1.tests;
 
 import java.util.concurrent.*;
 
 public class MemoryTests {
 
-    static class TransposeMatrix {
+    public static class TransposeMatrix {
 
         public static void runSequential(double[][] matrix) {
             int n = matrix.length;

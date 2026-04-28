@@ -1,0 +1,57 @@
+
+####### TEST 1: CPU-BOUND #######
+
+>>>>> Running 1.1. Pi Monte-Carlo
+--- Sequential: 525 ms
+--- Parallel (2): 426 ms
+    -> Speedup: 1,23
+--- Parallel (4): 297 ms
+    -> Speedup: 1,77
+--- Parallel (8): 217 ms
+    -> Speedup: 2,42
+--- Parallel (16): 209 ms
+    -> Speedup: 2,51
+
+>>>>> Running 1.2. Factorization
+--- Sequential: 7712 ms
+--- Parallel (2): 4386 ms
+    -> Speedup: 1,76
+--- Parallel (4): 3046 ms
+    -> Speedup: 2,53
+--- Parallel (8): 2523 ms
+    -> Speedup: 3,06
+--- Parallel (16): 2416 ms
+    -> Speedup: 3,19
+
+>>>>> Running 1.3. Prime Numbers
+--- Sequential: 143 ms
+--- Parallel (2): 124 ms
+    -> Speedup: 1,15
+--- Parallel (4): 75 ms
+    -> Speedup: 1,91
+--- Parallel (8): 64 ms
+    -> Speedup: 2,23
+--- Parallel (16): 56 ms
+    -> Speedup: 2,55
+
+####### TEST 2: MEMORY-BOUND #######
+--- Sequential: 2938 ms
+--- Parallel (2): 1866 ms
+    -> Speedup: 1,57
+--- Parallel (4): 916 ms
+    -> Speedup: 3,21
+--- Parallel (8): 620 ms
+    -> Speedup: 4,74
+--- Parallel (16): 537 ms
+    -> Speedup: 5,47
+
+####### TEST 3: I/O-BOUND #######
+--- Sequential: 942 ms
+--- Parallel (2): 342 ms
+    -> Speedup: 2,75
+--- Parallel (4): 213 ms
+    -> Speedup: 4,42
+--- Parallel (8): 170 ms
+    -> Speedup: 5,54
+--- Parallel (16): 150 ms
+    -> Speedup: 6,28
