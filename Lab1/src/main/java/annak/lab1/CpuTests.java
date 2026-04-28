@@ -2,20 +2,16 @@ package annak.lab1;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.*;
 
+import static annak.lab1.Main.PI_ITERATIONS;
 import static annak.lab1.Utils.measureTime;
 import static annak.lab1.Utils.printSpeedup;
 
 public class CpuTests {
 
-    private final static long PI_ITERATIONS = 50_000_000L;
-
     public static void runTest(String name, int[] threadsConfig, SequentialTask seq, ParallelTask par) {
-        System.out.println(">>>>> Running " + name);
+        System.out.println("\n>>>>> Running " + name);
         long timeSeq = measureTime("--- Sequential", () -> {
             try {
                 seq.run();
@@ -68,6 +64,79 @@ public class CpuTests {
             }
             ex.invokeAll(tasks);
             ex.shutdown();
+        }
+    }
+
+    static class Factorization {
+
+        public static void runSequential(long n) {
+            long limit = (long) Math.sqrt(n);
+            long count = 0;
+            for (long i = 2; i <= limit; i++) {
+                if (n % i == 0) {
+                    count++;
+                }
+            }
+        }
+
+        public static void runParallel(long n, int threads) throws Exception {
+            ExecutorService ex = Executors.newFixedThreadPool(threads);
+            long limit = (long) Math.sqrt(n);
+            long step = limit / threads;
+
+            for (int i = 0; i < threads; i++) {
+                final long start = 2 + i * step;
+                final long end = (i == threads - 1) ? limit : start + step;
+                ex.submit(() -> {
+                    long count = 0;
+                    for (long k = start; k < end; k++) {
+                        if (n % k == 0) {
+                            count++;
+                        }
+                    }
+                });
+            }
+            ex.shutdown();
+            ex.awaitTermination(10, TimeUnit.MINUTES);
+        }
+    }
+
+    static class PrimeNumbers {
+
+        public static void runSequential(int max) {
+            int count = 0;
+            for (int i = 2; i <= max; i++) {
+                if (isPrime(i)) {
+                    count++;
+                }
+            }
+        }
+
+        public static void runParallel(int max, int threads) throws Exception {
+            ExecutorService ex = Executors.newFixedThreadPool(threads);
+            int step = max / threads;
+            for (int i = 0; i < threads; i++) {
+                final int start = 2 + i * step;
+                final int end = (i == threads - 1) ? max : start + step;
+                ex.submit(() -> {
+                    int count = 0;
+                    for (int k = start; k < end; k++) {
+                        if (isPrime(k)) {
+                            count++;
+                        }
+                    }
+                });
+            }
+            ex.shutdown();
+            ex.awaitTermination(10, TimeUnit.MINUTES);
+        }
+
+        private static boolean isPrime(int n) {
+            if (n < 2) return false;
+            for (int i = 2; i * i <= n; i++) {
+                if (n % i == 0) return false;
+            }
+            return true;
         }
     }
 }
