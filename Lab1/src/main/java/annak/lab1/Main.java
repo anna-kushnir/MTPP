@@ -16,7 +16,7 @@ public class Main {
     private static final int MATRIX_SIZE = 10_000;
 
     private static final int FILES_COUNT = 1000;
-    private static final String DIR_NAME = "test_files";
+    private static final String DIR_NAME = "lab1_test_files";
 
     public static void main(String[] args) {
         int cores = Runtime.getRuntime().availableProcessors();
@@ -43,7 +43,8 @@ public class Main {
         }
 
         System.out.println("\n####### TEST 3: I/O-BOUND #######");
-        if (IoTests.WordsCounter.prepareTestFiles(DIR_NAME, FILES_COUNT)) System.out.println("Test files were generated");
+        if (IoTests.WordsCounter.prepareTestFiles(DIR_NAME, FILES_COUNT))
+            System.out.println("Test files were generated");
         long timeSeqIo = measureTime("--- Sequential",
                 () -> IoTests.WordsCounter.runSequential(DIR_NAME));
         for (int threads : threadsConfig) {
