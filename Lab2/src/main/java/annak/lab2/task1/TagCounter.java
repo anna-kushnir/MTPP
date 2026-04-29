@@ -33,19 +33,26 @@ public class TagCounter {
     }
 
     // Fork-Join
-    public static class TagCounterTask extends RecursiveTask<Map<String, Integer>> {
-        List<String> docs;
-        int start, end;
+    public static Map<String, Integer> countForkJoin(List<String> docs, int threshold) {
+        return ForkJoinPool.commonPool().invoke(
+                new TagCounter.TagCounterTask(docs, 0, docs.size(), threshold)
+        );
+    }
 
-        public TagCounterTask(List<String> docs, int start, int end) {
+    private static class TagCounterTask extends RecursiveTask<Map<String, Integer>> {
+        List<String> docs;
+        int start, end, threshold;
+
+        public TagCounterTask(List<String> docs, int start, int end, int threshold) {
             this.docs = docs;
             this.start = start;
             this.end = end;
+            this.threshold = threshold;
         }
 
         @Override
         protected Map<String, Integer> compute() {
-            if (end - start <= 2) {
+            if (end - start <= threshold) {
                 Map<String, Integer> map = new HashMap<>();
                 for (int i = start; i < end; i++) {
                     for (String word : docs.get(i).split("\\s+")) {
@@ -53,18 +60,41 @@ public class TagCounter {
                             map.merge(word, 1, Integer::sum);
                         }
                     }
-                    return map;
                 }
+                return map;
             }
 
             int mid = (start + end) / 2;
-            TagCounterTask left = new TagCounterTask(docs, start, mid);
+            TagCounterTask left = new TagCounterTask(docs, start, mid, threshold);
             left.fork();
-            Map<String, Integer> right = new TagCounterTask(docs, mid, end).compute();
+            Map<String, Integer> right = new TagCounterTask(docs, mid, end, threshold).compute();
             Map<String, Integer> leftRes = left.join();
             leftRes.forEach((k, v) -> right.merge(k, v, Integer::sum));
             return right;
         }
+    }
+
+    // Worker Pool
+    public static Map<String, Integer> countWorkerPool(List<String> docs, int threads) {
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        ConcurrentHashMap<String, Integer> res = new ConcurrentHashMap<>();
+        for (String doc : docs) {
+            pool.execute(() -> {
+                for (String word : doc.split("\\s+")) {
+                    if (isTag(word)) {
+                        res.merge(word, 1, Integer::sum);
+                    }
+                }
+            });
+        }
+        pool.shutdown();
+        try {
+            pool.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            System.out.println("ERROR: " + e.getMessage());
+            System.exit(-1);
+        }
+        return res;
     }
 
     private static boolean isTag(String s) {
