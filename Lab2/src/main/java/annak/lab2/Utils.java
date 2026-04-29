@@ -2,12 +2,12 @@ package annak.lab2;
 
 public class Utils {
 
-    public static long measureTime(String name, Runnable task) {
+    public static long measureTime(String name, Runnable task, boolean print) {
         System.gc();
         long start = System.currentTimeMillis();
         task.run();
         long time = System.currentTimeMillis() - start;
-        System.out.printf("%s: %d ms%n", name, time);
+        if (print) System.out.printf("%s: %d ms%n", name, time);
         return time;
     }
 
