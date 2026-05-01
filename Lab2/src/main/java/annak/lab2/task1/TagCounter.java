@@ -34,20 +34,21 @@ public class TagCounter {
 
     // Fork-Join
     public static Map<String, Integer> countForkJoin(List<String> docs, int threshold) {
+        TagCounterTask.threshold = threshold;
         return ForkJoinPool.commonPool().invoke(
-                new TagCounter.TagCounterTask(docs, 0, docs.size(), threshold)
+                new TagCounter.TagCounterTask(docs, 0, docs.size())
         );
     }
 
     private static class TagCounterTask extends RecursiveTask<Map<String, Integer>> {
         List<String> docs;
-        int start, end, threshold;
+        int start, end;
+        static int threshold;
 
-        public TagCounterTask(List<String> docs, int start, int end, int threshold) {
+        public TagCounterTask(List<String> docs, int start, int end) {
             this.docs = docs;
             this.start = start;
             this.end = end;
-            this.threshold = threshold;
         }
 
         @Override
@@ -65,9 +66,9 @@ public class TagCounter {
             }
 
             int mid = (start + end) / 2;
-            TagCounterTask left = new TagCounterTask(docs, start, mid, threshold);
+            TagCounterTask left = new TagCounterTask(docs, start, mid);
             left.fork();
-            Map<String, Integer> right = new TagCounterTask(docs, mid, end, threshold).compute();
+            Map<String, Integer> right = new TagCounterTask(docs, mid, end).compute();
             Map<String, Integer> leftRes = left.join();
             leftRes.forEach((k, v) -> right.merge(k, v, Integer::sum));
             return right;

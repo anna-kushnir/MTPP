@@ -1,5 +1,7 @@
 package annak.lab2;
 
+import annak.lab2.task1.ArrayStats;
+import annak.lab2.task1.MatrixMultiplier;
 import annak.lab2.task1.TagCounter;
 
 import java.util.List;
@@ -11,49 +13,86 @@ public class Main {
 
     private static final String HTML_DIR = "lab2_html_files";
     private static final int FILES_COUNT = 2000;
-    private static final int FJ_THRESHOLD = 5;
+    private static final int THRESHOLD_TAG_COUNTER = 5;
 
-    private static final int MATRIX_SIZE = 1000;
     private static final int ARRAY_SIZE = 10_000_000;
+    private static final int THRESHOLD_ARRAY_STATS = 100_000;
+
+    private static final int MATRIX_SIZE = 1500;
 
     private static final int THREADS = Runtime.getRuntime().availableProcessors();
     private static final int HEATING_ITERATIONS = 5;
+    private static final int HEATING_ITERATIONS_MATRIX = 2;
 
     public static void main(String[] args) {
         System.out.println("\nLogic cores count: " + THREADS);
         System.out.println("\n####### TEST 1: Map-Reduce vs Fork-Join vs Worker Pool #######");
         runTagCounterTests();
+        runArrayStatsTests();
+        runMatrixTests();
     }
 
     private static void runTagCounterTests() {
-        System.out.println("\n>>>>> Running 1.1. Tag Counter");
-
         if (TagCounter.prepareHtmlFiles(HTML_DIR, FILES_COUNT))
             System.out.println("Html files were generated");
         final List<String> htmlDocs = TagCounter.loadDocuments(HTML_DIR);
-        System.out.println("Html files were loaded");
+
+        runPatternTests("1.1. Tag Counter",
+                HEATING_ITERATIONS,
+                () -> TagCounter.countSequential(htmlDocs),
+                () -> TagCounter.countMapReduce(htmlDocs),
+                () -> TagCounter.countForkJoin(htmlDocs, THRESHOLD_TAG_COUNTER),
+                () -> TagCounter.countWorkerPool(htmlDocs, THREADS)
+        );
+    }
+
+    private static void runArrayStatsTests() {
+        double[] array = ArrayStats.generateArray(ARRAY_SIZE);
+
+        runPatternTests("1.2. Array Statistics",
+                HEATING_ITERATIONS,
+                () -> ArrayStats.statsSequential(array),
+                () -> ArrayStats.statsMapReduce(array),
+                () -> ArrayStats.statsForkJoin(array, THRESHOLD_ARRAY_STATS),
+                () -> ArrayStats.statsWorkerPool(array, THREADS)
+        );
+    }
+
+    private static void runMatrixTests() {
+        double[][] a = MatrixMultiplier.generateMatrix(MATRIX_SIZE);
+        double[][] b = MatrixMultiplier.generateMatrix(MATRIX_SIZE);
+
+        runPatternTests("1.3. Matrix Multiplication",
+                HEATING_ITERATIONS_MATRIX,
+                () -> MatrixMultiplier.multiplySequential(a, b),
+                () -> MatrixMultiplier.multiplyMapReduce(a, b),
+                () -> MatrixMultiplier.multiplyForkJoin(a, b),
+                () -> MatrixMultiplier.multiplyWorkerPool(a, b, THREADS)
+        );
+    }
+
+    private static void runPatternTests(String testName, int heatingIter, Runnable seqTask,
+                                        Runnable mrTask, Runnable fjTask, Runnable wpTask) {
+        System.out.println("\n>>>>> Running " + testName);
 
         long timeSeq = 0, timeMR = 0, timeFJ = 0, timeWP = 0;
-        for (int i = 1; i <= HEATING_ITERATIONS; i++) {
-            timeSeq = measureTime("--- Sequential",
-                    () -> TagCounter.countSequential(htmlDocs), i == HEATING_ITERATIONS);
+
+        for (int i = 1; i <= heatingIter; i++) {
+            timeSeq = measureTime("--- Sequential", seqTask, i == heatingIter);
         }
 
-        for (int i = 1; i <= HEATING_ITERATIONS; i++) {
-            timeMR = measureTime("--- Map-Reduce",
-                    () -> TagCounter.countMapReduce(htmlDocs), i == HEATING_ITERATIONS);
+        for (int i = 1; i <= heatingIter; i++) {
+            timeMR = measureTime("--- Map-Reduce", mrTask, i == heatingIter);
         }
         printSpeedup(timeSeq, timeMR);
 
-        for (int i = 1; i <= HEATING_ITERATIONS; i++) {
-            timeFJ = measureTime("--- Fork-Join",
-                    () -> TagCounter.countForkJoin(htmlDocs, FJ_THRESHOLD), i == HEATING_ITERATIONS);
+        for (int i = 1; i <= heatingIter; i++) {
+            timeFJ = measureTime("--- Fork-Join", fjTask, i == heatingIter);
         }
         printSpeedup(timeSeq, timeFJ);
 
-        for (int i = 1; i <= HEATING_ITERATIONS; i++) {
-            timeWP = measureTime("--- Worker Pool",
-                    () -> TagCounter.countWorkerPool(htmlDocs, THREADS), i == HEATING_ITERATIONS);
+        for (int i = 1; i <= heatingIter; i++) {
+            timeWP = measureTime("--- Worker Pool", wpTask, i == heatingIter);
         }
         printSpeedup(timeSeq, timeWP);
     }
